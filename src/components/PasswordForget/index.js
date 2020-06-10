@@ -1,9 +1,19 @@
 import React from 'react'
-
-const PasswordForget = () => (
+import { Link } from 'react-router-dom'
+import PasswordForgetForm from './PasswordForgetForm'
+import * as ROUTES from '../../constants/routes'
+ 
+const PasswordForgetPage = () => (
   <div>
-      <h1> Password Forget Page </h1>
+    <PasswordForgetForm />
   </div>
 )
- 
-export default PasswordForget;
+
+const PasswordForgetLink = () => (
+  <p>
+    <Link to={ROUTES.PASSWORD_FORGET}>Forgot Password?</Link>
+  </p>
+)
+
+export { PasswordForgetLink }
+export default PasswordForgetPage

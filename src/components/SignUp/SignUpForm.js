@@ -71,4 +71,6 @@ const SignUpForm = compose(
   withFirebase,
 )(SignUpFormBase)
 
+// const SignUpForm = withRouter(withFirebase(PasswordForgetFormBase))
+
 export default SignUpForm
