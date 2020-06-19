@@ -36,14 +36,19 @@ class PasswordChangeForm extends Component {
   render() {
     const { passwordOne, passwordTwo, error } = this.state
     const isInvalid = passwordOne !== passwordTwo || passwordOne === ''
-
+    
     return (
       <form onSubmit={this.onSubmit}>
-        <input name="passwordOne" value={ passwordOne } onChange={ this.onChange } type="password" placeholder="New Password" />
-        <input name="passwordTwo" value={ passwordTwo } onChange={ this.onChange } type="password" placeholder="Confirm New Password" />
-        <button disabled={isInvalid} type="submit"> Reset My Password </button>
- 
-        { error && <p>{error.message}</p> }
+        <div className="form-group">
+          <label htmlFor="InputPassword">Password</label>
+          <input id="InputPassword" className="form-control mb-2" name="passwordOne" value={ passwordOne } onChange={ this.onChange } type="password" placeholder="New Password" />
+          <label htmlFor="InputConfirmPassword">Confirm Password</label>
+          <input id="InputConfirmPassword" className="form-control mb-2" name="passwordTwo" value={ passwordTwo } onChange={ this.onChange } type="password" placeholder="Confirm New Password" />
+          <div className="text-right">
+            <button className="btn btn-outline-dark" disabled={isInvalid} type="submit"> Change My Password </button>
+          </div>
+          { error && <p>{error.message}</p> }
+        </div>
       </form>
     )
   }

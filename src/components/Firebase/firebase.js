@@ -1,5 +1,7 @@
 import app from 'firebase/app'
 import 'firebase/auth'
+import 'firebase/database'
+import 'firebase/storage'
 
 const firebaseConfig = {
     apiKey: process.env.REACT_APP_API_KEY,
@@ -16,6 +18,8 @@ class Firebase {
         app.initializeApp(firebaseConfig)
 
         this.auth = app.auth()
+        this.db = app.database()
+        this.storage = app.storage()
     }
 
     // *** Auth API *** //
@@ -24,12 +28,49 @@ class Firebase {
 
     signInWithEmailAndPassword = (email, password) => this.auth.signInWithEmailAndPassword(email, password)
 
+    setDisplayName = (username) => this.auth.currentUser.updateProfile({ displayName: username })      
+
+    setDefaultProfilePicture = () => {
+
+        this.storage.ref(`Default_Profile_Pictures/${ Math.floor(Math.random() * (12 - 1 + 1)) + 1 }.png`).getDownloadURL()
+        .then((url) => {
+            this.auth.currentUser.updateProfile({ photoURL : url })
+        })
+    }  
+
     signOut = () => this.auth.signOut()
 
     passwordReset = email => this.auth.sendPasswordResetEmail(email);
  
     passwordUpdate = password => this.auth.currentUser.updatePassword(password)
 
+    // *** User API *** //
+
+    user = uid => this.db.ref(`users/${uid}`)
+
+    users = () => this.db.ref('users')
+
+    // *** Storage API *** //
+
+    // uploadProfilePicture = picture => {
+    //     const storageRef = this.storage.ref(`Profile_Pictures/${picture.name}`)
+    //     const task = storageRef.put(picture)
+        
+    //     task.on('state_changed',
+    //         function process(snapshot) {
+    //             let percentage = (snapshot.bytesTransfered / snapshot.totalBytes) * 100
+    //             console.log(percentage)
+    //         },
+
+    //         function error(error) {
+    //             console.log(error)
+    //         },
+            
+    //         function complete() {
+    //             console.log("Upload Complete")
+    //         }
+    //     )
+    // }
 }
    
 export default Firebase
