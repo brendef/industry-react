@@ -52,25 +52,33 @@ class Firebase {
 
     // *** Storage API *** //
 
-    // uploadProfilePicture = picture => {
-    //     const storageRef = this.storage.ref(`Profile_Pictures/${picture.name}`)
-    //     const task = storageRef.put(picture)
-        
-    //     task.on('state_changed',
-    //         function process(snapshot) {
-    //             let percentage = (snapshot.bytesTransfered / snapshot.totalBytes) * 100
-    //             console.log(percentage)
-    //         },
+    /* 
+        -   If code breaks take the whole "uploadProfilePicture" function and place it in accounts below the constructor and change 
+        -   "this.storage" to "this.props.firebase.storage"
+    */
 
-    //         function error(error) {
-    //             console.log(error)
-    //         },
+    uploadProfilePicture = picture => {
+
+        const storageRef = this.storage.ref(`Profile_Pictures/${picture.name}`)
+        const task = storageRef.put(picture)
+        
+        task.on('state_changed',
+            function process(snapshot) {
+                let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
+                const progressbar = document.getElementById('progressbar')
+                progressbar.value = percentage
+            },
+    
+            function error(error) {
+                console.log(error)
+            },
             
-    //         function complete() {
-    //             console.log("Upload Complete")
-    //         }
-    //     )
-    // }
+            function complete() {
+                const uploadCompleteText = document.getElementById('upload-complete-text')
+                uploadCompleteText.innerHTML = "Upload Complete"
+            }
+        )
+      }
 }
-   
+
 export default Firebase
