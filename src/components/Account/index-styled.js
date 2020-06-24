@@ -1,74 +1,23 @@
-import React, { useState } from 'react'
+import React, { Component } from 'react'
 import PasswordChangeForm from '../PasswordChange'
 import { withAuthorisation, AuthUserContext } from '../Session'
 
 import './AccountPage.css'
 
-const AccountPage = (props) => {
+class AccountPage extends Component {
+    constructor(props) {
+        super(props)
 
-    // const getBio = () => {
-    //     props.firebase.db.ref(`users/${props.firebase.auth.currentUser.uid}/bio`)
-    //     .once('value', snapshot => {
-    //         snapshot.exportVal()
-    //     })
-    //     .then(snap => {
-    //         return snap.val
-    //     })
-    // }
-
-    const getBio = () => {
-        props.firebase.user(props.firebase.auth.currentUser.uid).child('bio').once('value', snapshot => {
-            snapshot.exportVal()
-        })
-    }
-
-    // const getBio = () => props.firebase.db.ref(`users/${props.firebase.auth.currentUser.uid}/bio`).once('value')
-    // .then(snapshot => { return snapshot.exportVal()})
-
-    const [state, setState] = useState(() => { 
-        return {
-            bio: getBio(),
+        this.state = {
+            authUser: this.props.authUser,
             selectedFile: null,
             error: null
         }
-     })
-  
 
-    const uploadProfilePicture = (uid, picture) => {
-        const storageRef = props.firebase.storage.ref(`Profile_Pictures/${uid}`)
-        const task = storageRef.put(picture)
-        const callSetProfilePicture = () => setProfilePicture(uid)
-
-        task.on('state_changed',
-            function process(snapshot) {
-                let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
-                const progressbar = document.getElementById('progressbar')
-                progressbar.value = percentage
-            },
-    
-            function error(error) {
-                console.log(error)
-            },
-            
-            function complete() {
-                const uploadCompleteText = document.getElementById('upload-complete-text')
-                uploadCompleteText.innerHTML = "Upload Complete"
-                callSetProfilePicture()
-            }
-        )
     }
 
-    const setProfilePicture = (uid) => {
-        props.firebase.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
-        .then(url => {
-            props.firebase.auth.currentUser.updateProfile({ photoURL : url })
-            document.getElementById('profile-picture-modal').src = url
-            document.getElementById('profile-picture-bio').src = url
-        })
-    }
-
-    const clearModal = () => {
-        setState({
+    clearModal = () => {
+        this.setState({
             selectedFile: null,
             error: null
         })
@@ -78,42 +27,45 @@ const AccountPage = (props) => {
         document.getElementById('progressbar').value = 0
         document.getElementById('upload-complete-text').innerHTML = ''
 
-        // for bio
+        //for bio
         document.getElementById('bio-text-area').value = ''
 
     }
 
-    const selectFileHandler = event => {
-        setState({
+    selectFileHandler = event => {
+        this.setState({
             selectedFile: event.target.files[0]
         })
     }
 
-    const uploadFileHandler = () => {
-        if (state.selectedFile === null) {
-            setState({
+    uploadFileHandler = () => {
+        if (this.state.selectedFile === null) {
+            this.setState({
                 error: "Please select a photo"
             })
         } else {
-            uploadProfilePicture(props.firebase.auth.currentUser.uid, state.selectedFile)
+            this.props.firebase.uploadProfilePicture(this.props.authUser.uid, this.state.selectedFile)
         }
     }
-    const test = () => {
-        console.log(state.bio)
+
+    componentDidMount() {
+        this.props.firebase.setBio()
     }
 
+    render() {
         return (
             <AuthUserContext.Consumer>
                 {authUser =>
                     <div className="accountspage">
-                        <button onClick={test}>check</button>
+
+
                         {/* Profile Picture Upload Modal */}
                         <div id="profilePictureModal" className="modal fade container-fluid" aria-hidden="true">
                             <div className="modal-dialog modal-dialog-centered" role="document">
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5>Upload Profile Picture</h5>
-                                        <button onClick={clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                        <button onClick={this.clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
@@ -125,18 +77,18 @@ const AccountPage = (props) => {
                                             </div>
                                             <div className="col-md-8 mt-3 mb-3">
                                                 {
-                                                    state.error ?
-                                                        <input id="uploadInput" className="text-danger" type="file" onChange={selectFileHandler} />
+                                                    this.state.error ?
+                                                        <input id="uploadInput" className="text-danger" type="file" onChange={this.selectFileHandler} />
                                                         :
-                                                        <input id="uploadInput" className="" type="file" onChange={selectFileHandler} />
+                                                        <input id="uploadInput" className="" type="file" onChange={this.selectFileHandler} />
                                                 }
                                             </div>
                                         </div>
-                                        {state.error && <p className="text-danger">{state.error}</p>}
+                                        {this.state.error && <p className="text-danger">{this.state.error}</p>}
 
                                         <progress id="progressbar" style={{ width: "100%" }} value="0" max-value="100"></progress>
 
-                                        <button className="btn btn-outline-dark mt-3 mb-3" onClick={uploadFileHandler}> Upload </button>
+                                        <button className="btn btn-outline-dark mt-3 mb-3" onClick={this.uploadFileHandler}> Upload </button>
 
                                         <p id="upload-complete-text" className="text-successful"></p>
 
@@ -147,13 +99,16 @@ const AccountPage = (props) => {
                         </div>
                         {/* Profile Picture Upload Modal */}
 
+
+
+
                         {/* Bio Modal */}
                         <div id="BioModal" className="modal fade container-fluid" aria-hidden="true">
                             <div className="modal-dialog modal-dialog-centered" role="document">
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5>Edit Bio</h5>
-                                        <button onClick={clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                        <button onClick={this.clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
@@ -163,8 +118,8 @@ const AccountPage = (props) => {
                                     </textarea>
 
                                     <div className="modal-footer">
-                                        <button onClick={clearModal} type="button" className="btn btn-outline-danger" data-dismiss="modal">Close</button>
-                                        <button type="button" className="btn btn-outline-dark" onClick={uploadFileHandler}>Update</button>
+                                        <button onClick={this.clearModal} type="button" className="btn btn-outline-danger" data-dismiss="modal">Close</button>
+                                        <button type="button" className="btn btn-outline-dark" onClick={this.uploadFileHandler}>Update</button>
                                     </div>
 
                                 </div>
@@ -192,7 +147,7 @@ const AccountPage = (props) => {
                                             <span><strong>Date Joined:</strong> March 2020</span>
                                             <hr />
                                             <span><strong>Bio:</strong></span>
-                                            {/* <p id="user-bio" className="user-bio"> {state.bio} </p> */}
+                                            <p id="user-bio" className="user-bio"> </p>
                                         </div>
                                     </div>
                                 </div>
@@ -257,7 +212,7 @@ const AccountPage = (props) => {
             </AuthUserContext.Consumer>
         )
     }
-
+}
 
 const condition = authUser => !!authUser;
 

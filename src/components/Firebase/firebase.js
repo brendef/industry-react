@@ -51,21 +51,21 @@ class Firebase {
     
     // *** These are methods that set the document directly and do not return anything *** //
 
-    setBio = () => {
+    // setBio = () => {
 
-        this.db.ref(`users/${this.auth.currentUser.uid}/bio`).on('value', snapshot => {
-            document.getElementById('user-bio').innerHTML = snapshot.val()
-        }) 
-    }
+    //     this.db.ref(`users/${this.auth.currentUser.uid}/bio`).on('value', snapshot => {
+    //         document.getElementById('user-bio').innerHTML = snapshot.val()
+    //     }) 
+    // }
 
-    setProfilePicture = (uid) => {
-        this.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
-        .then(url => {
-            this.auth.currentUser.updateProfile({ photoURL : url })
-            document.getElementById('profile-picture-modal').src = url
-            document.getElementById('profile-picture-bio').src = url
-        })
-    }
+    // setProfilePicture = (uid) => {
+    //     this.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
+    //     .then(url => {
+    //         this.auth.currentUser.updateProfile({ photoURL : url })
+    //         document.getElementById('profile-picture-modal').src = url
+    //         document.getElementById('profile-picture-bio').src = url
+    //     })
+    // }
 
     // *** Storage API *** //
 
@@ -74,29 +74,29 @@ class Firebase {
         -   "this.storage" to "this.props.firebase.storage"
     */
 
-    uploadProfilePicture = (uid, picture) => {
-        const storageRef = this.storage.ref(`Profile_Pictures/${uid}`)
-        const task = storageRef.put(picture)
-        const callSetProfilePicture = () => this.setProfilePicture(uid)
+//     uploadProfilePicture = (uid, picture) => {
+//         const storageRef = this.storage.ref(`Profile_Pictures/${uid}`)
+//         const task = storageRef.put(picture)
+//         const callSetProfilePicture = () => this.setProfilePicture(uid)
 
-        task.on('state_changed',
-            function process(snapshot) {
-                let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
-                const progressbar = document.getElementById('progressbar')
-                progressbar.value = percentage
-            },
+//         task.on('state_changed',
+//             function process(snapshot) {
+//                 let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
+//                 const progressbar = document.getElementById('progressbar')
+//                 progressbar.value = percentage
+//             },
     
-            function error(error) {
-                console.log(error)
-            },
+//             function error(error) {
+//                 console.log(error)
+//             },
             
-            function complete() {
-                const uploadCompleteText = document.getElementById('upload-complete-text')
-                uploadCompleteText.innerHTML = "Upload Complete"
-                callSetProfilePicture()
-            }
-        )
-      }
+//             function complete() {
+//                 const uploadCompleteText = document.getElementById('upload-complete-text')
+//                 uploadCompleteText.innerHTML = "Upload Complete"
+//                 callSetProfilePicture()
+//             }
+//         )
+//       }
 }
 
 export default Firebase
