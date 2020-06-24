@@ -28,12 +28,11 @@ class Firebase {
 
     signInWithEmailAndPassword = (email, password) => this.auth.signInWithEmailAndPassword(email, password)
 
-    setDisplayName = (username) => this.auth.currentUser.updateProfile({ displayName: username })      
+    setDisplayName = (username) => this.auth.currentUser.updateProfile({ displayName : username })      
 
     setDefaultProfilePicture = () => {
-
         this.storage.ref(`Default_Profile_Pictures/${ Math.floor(Math.random() * (12 - 1 + 1)) + 1 }.png`).getDownloadURL()
-        .then((url) => {
+        .then(url => {
             this.auth.currentUser.updateProfile({ photoURL : url })
         })
     }  
@@ -49,6 +48,24 @@ class Firebase {
     user = uid => this.db.ref(`users/${uid}`)
 
     users = () => this.db.ref('users')
+    
+    // *** These are methods that set the document directly and do not return anything *** //
+
+    setBio = () => {
+
+        this.db.ref(`users/${this.auth.currentUser.uid}/bio`).on('value', snapshot => {
+            document.getElementById('user-bio').innerHTML = snapshot.val()
+        }) 
+    }
+
+    setProfilePicture = (uid) => {
+        this.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
+        .then(url => {
+            this.auth.currentUser.updateProfile({ photoURL : url })
+            document.getElementById('profile-picture-modal').src = url
+            document.getElementById('profile-picture-bio').src = url
+        })
+    }
 
     // *** Storage API *** //
 
@@ -57,11 +74,11 @@ class Firebase {
         -   "this.storage" to "this.props.firebase.storage"
     */
 
-    uploadProfilePicture = picture => {
-
-        const storageRef = this.storage.ref(`Profile_Pictures/${picture.name}`)
+    uploadProfilePicture = (uid, picture) => {
+        const storageRef = this.storage.ref(`Profile_Pictures/${uid}`)
         const task = storageRef.put(picture)
-        
+        const callSetProfilePicture = () => this.setProfilePicture(uid)
+
         task.on('state_changed',
             function process(snapshot) {
                 let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
@@ -76,6 +93,7 @@ class Firebase {
             function complete() {
                 const uploadCompleteText = document.getElementById('upload-complete-text')
                 uploadCompleteText.innerHTML = "Upload Complete"
+                callSetProfilePicture()
             }
         )
       }

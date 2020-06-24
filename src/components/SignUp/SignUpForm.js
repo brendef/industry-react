@@ -5,7 +5,7 @@ import { compose } from 'recompose'
 import * as ROUTES from '../../constants/routes'
 
 const INITIAL_STATE = {
-    username: '',
+    fullname: '',
     email: '',
     passwordOne: '',
     passwordTwo: '',
@@ -24,7 +24,7 @@ class SignUpFormBase extends Component {
     }
 
     onSubmit = event => {
-        const { username, email, passwordOne } = this.state;
+        const { fullname, email, passwordOne } = this.state;
      
         this.props.firebase
           .createUserWithEmailAndPassword(email, passwordOne)
@@ -32,12 +32,13 @@ class SignUpFormBase extends Component {
             return this.props.firebase
               .user(authUser.user.uid)
               .set({
-                username,
-                email
+                email,
+                fullname,
+                bio: `Hi there! My name is ${fullname} and I am using the best app in the world!`
               })
           })
           .then(() => {
-            this.props.firebase.setDisplayName(username)
+            this.props.firebase.setDisplayName(fullname)
             this.props.firebase.setDefaultProfilePicture()
           })
           // .then(() => {
@@ -56,7 +57,7 @@ class SignUpFormBase extends Component {
 
     render() {
         const {
-            username,
+            fullname,
             email,
             passwordOne,
             passwordTwo,
@@ -64,14 +65,14 @@ class SignUpFormBase extends Component {
           } = this.state
 
         // add email and password validation
-        const isInvalid = passwordOne !== passwordTwo || passwordOne === '' || email === '' || username === ''
+        const isInvalid = passwordOne !== passwordTwo || passwordOne === '' || email === '' || fullname === ''
 
         return (
             <form onSubmit={this.onSubmit}>
               <h1>SIGN UP</h1>
               <div className="form-group">
                 <label htmlFor="InputFullName">Full Name</label>
-                <input id="InputFullName" className="form-control mb-2"  name="username" value={username} onChange={this.onChange} type="text" placeholder="Full Name" />
+                <input id="InputFullName" className="form-control mb-2"  name="fullname" value={fullname} onChange={this.onChange} type="text" placeholder="Full Name" />
                 
                 <label htmlFor="InputEmail">Email Address</label>
                 <input id="InputEmail"  className="form-control mb-2" name="email" value={email} onChange={this.onChange} type="text" placeholder="Email Address" />

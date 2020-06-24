@@ -2,17 +2,19 @@ import React, { Component } from 'react'
 import PasswordChangeForm from '../PasswordChange'
 import { withAuthorisation, AuthUserContext } from '../Session'
 
-import './AccountsPage.css'
+// import './AccountsPage.css'
+import ProfilePictureModal from './ProfilePictureModal'
+import AccountBio from './AccountBio'
+import BioModal from './BioModal'
 
 class AccountPage extends Component {
   constructor(props) {
     super(props)
 
     this.state = { 
-      authUser : this.props.authUser,
-      selectedFile : null,
-      error : null
+      authUser : this.props.authUser
     }
+
   }
 
   /* 
@@ -42,97 +44,81 @@ class AccountPage extends Component {
     //   )
     // }
 
-  selectFileHandler = event => {
-    this.setState({
-    selectedFile : event.target.files[0]
-    })  
-  }
-
-  uploadFileHandler = () => {
-    if(this.state.selectedFile === null) {
-      this.setState({ 
-        error : "Please select a photo"
-      })
-    } else {
-      // this.uploadProfilePicture(this.state.selectedFile)
-      this.props.firebase.uploadProfilePicture(this.state.selectedFile)
-    }
-  } 
 
   render() {
     return (
       <AuthUserContext.Consumer>
         { authUser => 
-          <div className="accountspage">
+          <div className="accountspage mt-5">
             <div className="container">
 
+              {/* Modals */}
               <div className="profilePicture">
-              <img className="profile-picture" src={authUser.photoURL} alt="" /> 
+                <ProfilePictureModal authUser={authUser} firebase={this.props.firebase} /> 
+              </div>
 
-              {/* Modal Starts Here */}
+              <div className="profilePicture">
+                <BioModal /> 
+              </div>
 
-              <div id="profilePictureModal" className="modal fade" aria-hidden="true">
-                {/* decide whether vertically centered or not */}
-                <div className="modal-dialog modal-dialog-centered" role="document">
-                  <div className="modal-content">
-                    <div className="modal-header">
-                      <h5>Upload Profile Picture</h5>
-                      <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+              <AccountBio authUser={authUser} firebase={this.props.firebase} />
+
+              <div className="accordion" id="accordionExample">
+                <div className="card">
+                  <div className="card-header" id="headingOne">
+                    <h2 className="mb-0">
+                      <button className="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                       Active Orders / Services
                       </button>
-                    </div>
+                    </h2>
+                  </div>
 
-                    <div className="modal-body d-flex flex-column">
-                      <div className="row align-items-center">
-                        <div className="col-md-4 mt-3 mb-3">
-                          <img className="profile-picture" src={authUser.photoURL} alt="" /> 
-                        </div>
-                        <div className="col-md-8 mt-3 mb-3">
-                        { 
-                          this.state.error ? 
-                          <input className="text-danger" type="file" onChange={ this.selectFileHandler } />
-                          : 
-                          <input className="" type="file" onChange={ this.selectFileHandler } />
-                        }
-                        </div>
+                  <div id="collapseOne" className="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                    <div className="card-body">
+                      All work with services will be shown here
+                    </div>
+                  </div>
+                </div>
+                <div className="card">
+                  <div className="card-header" id="headingTwo">
+                    <h2 className="mb-0">
+                      <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Edit Profile
+                      </button>
+                    </h2>
+                  </div>
+                  <div id="collapseTwo" className="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+                    <div className="card-body">
+                      <div className="d-flex flex-column">
+                        <p className="editProfileButtons p-2" data-toggle="modal" data-target="#profilePictureModal">Change Profile Picture</p>
+                        <p className="editProfileButtons p-2" data-toggle="modal" data-target="#BioModal">Edit Bio</p>
                       </div>
-                      {this.state.error && <p className="text-danger">{ this.state.error }</p>}
-
-                      <progress id="progressbar" style={{width:"100%"}} value="0" max-value="100"></progress>
-
-                      <button className="btn btn-outline-dark mt-3 mb-3" onClick={ this.uploadFileHandler }> Upload </button>
-
-                      <p id="upload-complete-text" className="text-successful"></p>
-
                     </div>
-
-                    {/* <div className="modal-footer">
-                      <button type="button" className="btn btn-outline-danger" data-dismiss="modal">Close</button>
-                      <button type="button" className="btn btn-outline-dark" onClick={ this.uploadFileHandler }>Upload</button>
-                    </div> */}
-                    
+                  </div>
+                </div>
+                <div className="card">
+                  <div className="card-header" id="headingThree">
+                    <h2 className="mb-0">
+                      <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        Reset Password
+                      </button>
+                    </h2>
+                  </div>
+                  <div id="collapseThree" className="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+                    <div className="card-body">
+                      <PasswordChangeForm />
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Modal Ends Here */}
-
-
-                <button className="btn btn-outline-dark" type="button" data-toggle="modal" data-target="#profilePictureModal">Change Profile Picture</button>
-              </div>
-
-
-              <h2> {authUser.displayName} </h2>
-              <h3>RESET PASSWORD</h3>
-              <PasswordChangeForm />
             </div>
-          </div> 
-          }
-      </AuthUserContext.Consumer>
+          </div>
+        }
+      </AuthUserContext.Consumer> 
     )
   }
 }
- 
+
 const condition = authUser => !!authUser;
  
 export default withAuthorisation(condition)(AccountPage)
