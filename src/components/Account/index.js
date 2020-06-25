@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import PasswordChangeForm from '../PasswordChange'
 import { withAuthorisation, AuthUserContext } from '../Session'
 
@@ -6,33 +6,21 @@ import './AccountPage.css'
 
 const AccountPage = (props) => {
 
-    // const getBio = () => {
-    //     props.firebase.db.ref(`users/${props.firebase.auth.currentUser.uid}/bio`)
-    //     .once('value', snapshot => {
-    //         snapshot.exportVal()
-    //     })
-    //     .then(snap => {
-    //         return snap.val
-    //     })
-    // }
-
-    const getBio = () => {
-        props.firebase.user(props.firebase.auth.currentUser.uid).child('bio').once('value', snapshot => {
-            snapshot.exportVal()
-        })
-    }
-
-    // const getBio = () => props.firebase.db.ref(`users/${props.firebase.auth.currentUser.uid}/bio`).once('value')
-    // .then(snapshot => { return snapshot.exportVal()})
-
     const [state, setState] = useState(() => { 
         return {
-            bio: getBio(),
+            bio: props.firebase.getBio(),
             selectedFile: null,
             error: null
         }
      })
-  
+
+    // useEffect(() => {
+    //     setState({ 
+    //         bio: props.firebase.getBio(),
+    //         selectedFile: null,
+    //         error: null 
+    //     })
+    //  }, [])
 
     const uploadProfilePicture = (uid, picture) => {
         const storageRef = props.firebase.storage.ref(`Profile_Pictures/${uid}`)
@@ -98,15 +86,11 @@ const AccountPage = (props) => {
             uploadProfilePicture(props.firebase.auth.currentUser.uid, state.selectedFile)
         }
     }
-    const test = () => {
-        console.log(state.bio)
-    }
 
         return (
             <AuthUserContext.Consumer>
                 {authUser =>
                     <div className="accountspage">
-                        <button onClick={test}>check</button>
                         {/* Profile Picture Upload Modal */}
                         <div id="profilePictureModal" className="modal fade container-fluid" aria-hidden="true">
                             <div className="modal-dialog modal-dialog-centered" role="document">
@@ -192,7 +176,7 @@ const AccountPage = (props) => {
                                             <span><strong>Date Joined:</strong> March 2020</span>
                                             <hr />
                                             <span><strong>Bio:</strong></span>
-                                            {/* <p id="user-bio" className="user-bio"> {state.bio} </p> */}
+                                            <p id="user-bio" className="user-bio"> </p>
                                         </div>
                                     </div>
                                 </div>

@@ -48,15 +48,15 @@ class Firebase {
     user = uid => this.db.ref(`users/${uid}`)
 
     users = () => this.db.ref('users')
-    
-    // *** These are methods that set the document directly and do not return anything *** //
 
-    // setBio = () => {
-
-    //     this.db.ref(`users/${this.auth.currentUser.uid}/bio`).on('value', snapshot => {
-    //         document.getElementById('user-bio').innerHTML = snapshot.val()
-    //     }) 
-    // }
+    getBio = () => {
+        let bio = []
+        this.db.ref(`users/${this.auth.currentUser.uid}/bio`)
+        .once('value', snapshot => {
+            bio.push(snapshot.exportVal())
+        })
+        return bio
+    }
 
     // setProfilePicture = (uid) => {
     //     this.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
