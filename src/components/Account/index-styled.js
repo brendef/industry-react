@@ -1,64 +1,74 @@
-import React, { useState, useEffect } from 'react'
+import React, { Component } from 'react'
 import PasswordChangeForm from '../PasswordChange'
 import { withAuthorisation, AuthUserContext } from '../Session'
 
 import './AccountPage.css'
 
-const AccountPage = (props) => {
+class AccountPage extends Component {
+    constructor(props) {
+        super(props)
 
-    const [state, setState] = useState({ 
-            bio: null,
+        this.state = {
+            authUser: this.props.authUser,
+            selectedFile: null,
+            error: null,
+            bio: "loading"
+        }
+
+    }
+
+    clearModal = () => {
+        this.setState({
             selectedFile: null,
             error: null
-     })
+        })
 
-    useEffect(() => {
-        props.firebase.userBio().on('value', snapshot => {
-            setState( prevState => {
-               return { ...prevState, bio : snapshot.val() }
-            })
-        }) 
-    }, [state.bio, props.firebase])
-
-    const clearModal = () => {
-       
         // for profile picture
         document.getElementById('uploadInput').value = ''
         document.getElementById('progressbar').value = 0
         document.getElementById('upload-complete-text').innerHTML = ''
 
-        // for bio
+        //for bio
         document.getElementById('bio-text-area').value = ''
 
     }
 
-    const selectFileHandler = event => {
-        setState({
+    selectFileHandler = event => {
+        this.setState({
             selectedFile: event.target.files[0]
         })
     }
 
-    const uploadFileHandler = () => {
-        if (state.selectedFile === null) {
-            setState({
+    uploadFileHandler = () => {
+        if (this.state.selectedFile === null) {
+            this.setState({
                 error: "Please select a photo"
             })
         } else {
-            props.firebase.uploadProfilePicture(props.firebase.auth.currentUser.uid, state.selectedFile)
+            this.props.firebase.uploadProfilePicture(this.props.authUser.uid, this.state.selectedFile)
         }
     }
 
+    componentDidMount() {
+        this.setState(({
+            bio: this.props.firebase.getBio()
+        }))
+    }
+
+    render() {
         return (
             <AuthUserContext.Consumer>
                 {authUser =>
                     <div className="accountspage">
+
+
                         {/* Profile Picture Upload Modal */}
                         <div id="profilePictureModal" className="modal fade container-fluid" aria-hidden="true">
                             <div className="modal-dialog modal-dialog-centered" role="document">
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5>Upload Profile Picture</h5>
-                                        <button onClick={clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                        <button onClick={this.clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
@@ -70,18 +80,18 @@ const AccountPage = (props) => {
                                             </div>
                                             <div className="col-md-8 mt-3 mb-3">
                                                 {
-                                                    state.error ?
-                                                        <input id="uploadInput" className="text-danger" type="file" onChange={selectFileHandler} />
+                                                    this.state.error ?
+                                                        <input id="uploadInput" className="text-danger" type="file" onChange={this.selectFileHandler} />
                                                         :
-                                                        <input id="uploadInput" className="" type="file" onChange={selectFileHandler} />
+                                                        <input id="uploadInput" className="" type="file" onChange={this.selectFileHandler} />
                                                 }
                                             </div>
                                         </div>
-                                        {state.error && <p className="text-danger">{state.error}</p>}
+                                        {this.state.error && <p className="text-danger">{this.state.error}</p>}
 
                                         <progress id="progressbar" style={{ width: "100%" }} value="0" max-value="100"></progress>
 
-                                        <button className="btn btn-outline-dark mt-3 mb-3" onClick={uploadFileHandler}> Upload </button>
+                                        <button className="btn btn-outline-dark mt-3 mb-3" onClick={this.uploadFileHandler}> Upload </button>
 
                                         <p id="upload-complete-text" className="text-successful"></p>
 
@@ -92,13 +102,16 @@ const AccountPage = (props) => {
                         </div>
                         {/* Profile Picture Upload Modal */}
 
+
+
+
                         {/* Bio Modal */}
                         <div id="BioModal" className="modal fade container-fluid" aria-hidden="true">
                             <div className="modal-dialog modal-dialog-centered" role="document">
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5>Edit Bio</h5>
-                                        <button onClick={clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
+                                        <button onClick={this.clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
@@ -108,8 +121,8 @@ const AccountPage = (props) => {
                                     </textarea>
 
                                     <div className="modal-footer">
-                                        <button onClick={clearModal} type="button" className="btn btn-outline-danger" data-dismiss="modal">Close</button>
-                                        <button type="button" className="btn btn-outline-dark" onClick={uploadFileHandler}>Update</button>
+                                        <button onClick={this.clearModal} type="button" className="btn btn-outline-danger" data-dismiss="modal">Close</button>
+                                        <button type="button" className="btn btn-outline-dark" onClick={this.uploadFileHandler}>Update</button>
                                     </div>
 
                                 </div>
@@ -137,7 +150,7 @@ const AccountPage = (props) => {
                                             <span><strong>Date Joined:</strong> March 2020</span>
                                             <hr />
                                             <span><strong>Bio:</strong></span>
-                                            <p id="user-bio" className="user-bio" > { state.bio } </p>
+                                            <p id="user-bio" className="user-bio"> {this.state.bio} </p>
                                         </div>
                                     </div>
                                 </div>
@@ -202,7 +215,7 @@ const AccountPage = (props) => {
             </AuthUserContext.Consumer>
         )
     }
-
+}
 
 const condition = authUser => !!authUser;
 

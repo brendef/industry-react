@@ -19,7 +19,8 @@ class Firebase {
 
         this.auth = app.auth()
         this.db = app.database()
-        this.storage = app.storage()
+        this.storage = app.storage()      
+
     }
 
     // *** Auth API *** //
@@ -48,15 +49,8 @@ class Firebase {
     user = uid => this.db.ref(`users/${uid}`)
 
     users = () => this.db.ref('users')
-    
-    // *** These are methods that set the document directly and do not return anything *** //
 
-    setBio = () => {
-
-        this.db.ref(`users/${this.auth.currentUser.uid}/bio`).on('value', snapshot => {
-            document.getElementById('user-bio').innerHTML = snapshot.val()
-        }) 
-    }
+    userBio = () => this.db.ref(`users/${this.auth.currentUser.uid}`).child('bio')
 
     setProfilePicture = (uid) => {
         this.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
@@ -68,11 +62,6 @@ class Firebase {
     }
 
     // *** Storage API *** //
-
-    /* 
-        -   If code breaks take the whole "uploadProfilePicture" function and place it in accounts below the constructor and change 
-        -   "this.storage" to "this.props.firebase.storage"
-    */
 
     uploadProfilePicture = (uid, picture) => {
         const storageRef = this.storage.ref(`Profile_Pictures/${uid}`)
