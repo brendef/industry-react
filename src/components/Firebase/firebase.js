@@ -19,7 +19,8 @@ class Firebase {
 
         this.auth = app.auth()
         this.db = app.database()
-        this.storage = app.storage()
+        this.storage = app.storage()      
+
     }
 
     // *** Auth API *** //
@@ -49,54 +50,42 @@ class Firebase {
 
     users = () => this.db.ref('users')
 
-    getBio = () => {
-        let bio = []
-        this.db.ref(`users/${this.auth.currentUser.uid}/bio`)
-        .once('value', snapshot => {
-            bio.push(snapshot.exportVal())
-        })
-        return bio
-    }
+    userBio = () => this.db.ref(`users/${this.auth.currentUser.uid}`).child('bio')
 
-    // setProfilePicture = (uid) => {
-    //     this.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
-    //     .then(url => {
-    //         this.auth.currentUser.updateProfile({ photoURL : url })
-    //         document.getElementById('profile-picture-modal').src = url
-    //         document.getElementById('profile-picture-bio').src = url
-    //     })
-    // }
+    setProfilePicture = (uid) => {
+        this.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
+        .then(url => {
+            this.auth.currentUser.updateProfile({ photoURL : url })
+            document.getElementById('profile-picture-modal').src = url
+            document.getElementById('profile-picture-bio').src = url
+        })
+    }
 
     // *** Storage API *** //
 
-    /* 
-        -   If code breaks take the whole "uploadProfilePicture" function and place it in accounts below the constructor and change 
-        -   "this.storage" to "this.props.firebase.storage"
-    */
+    uploadProfilePicture = (uid, picture) => {
+        const storageRef = this.storage.ref(`Profile_Pictures/${uid}`)
+        const task = storageRef.put(picture)
+        const callSetProfilePicture = () => this.setProfilePicture(uid)
 
-//     uploadProfilePicture = (uid, picture) => {
-//         const storageRef = this.storage.ref(`Profile_Pictures/${uid}`)
-//         const task = storageRef.put(picture)
-//         const callSetProfilePicture = () => this.setProfilePicture(uid)
-
-//         task.on('state_changed',
-//             function process(snapshot) {
-//                 let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
-//                 const progressbar = document.getElementById('progressbar')
-//                 progressbar.value = percentage
-//             },
+        task.on('state_changed',
+            function process(snapshot) {
+                let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
+                const progressbar = document.getElementById('progressbar')
+                progressbar.value = percentage
+            },
     
-//             function error(error) {
-//                 console.log(error)
-//             },
+            function error(error) {
+                console.log(error)
+            },
             
-//             function complete() {
-//                 const uploadCompleteText = document.getElementById('upload-complete-text')
-//                 uploadCompleteText.innerHTML = "Upload Complete"
-//                 callSetProfilePicture()
-//             }
-//         )
-//       }
+            function complete() {
+                const uploadCompleteText = document.getElementById('upload-complete-text')
+                uploadCompleteText.innerHTML = "Upload Complete"
+                callSetProfilePicture()
+            }
+        )
+      }
 }
 
 export default Firebase

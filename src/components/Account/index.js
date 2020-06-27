@@ -6,61 +6,22 @@ import './AccountPage.css'
 
 const AccountPage = (props) => {
 
-    const [state, setState] = useState(() => { 
-        return {
-            bio: props.firebase.getBio(),
+    const [state, setState] = useState({ 
+            bio: null,
             selectedFile: null,
             error: null
-        }
      })
 
-    // useEffect(() => {
-    //     setState({ 
-    //         bio: props.firebase.getBio(),
-    //         selectedFile: null,
-    //         error: null 
-    //     })
-    //  }, [])
-
-    const uploadProfilePicture = (uid, picture) => {
-        const storageRef = props.firebase.storage.ref(`Profile_Pictures/${uid}`)
-        const task = storageRef.put(picture)
-        const callSetProfilePicture = () => setProfilePicture(uid)
-
-        task.on('state_changed',
-            function process(snapshot) {
-                let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
-                const progressbar = document.getElementById('progressbar')
-                progressbar.value = percentage
-            },
-    
-            function error(error) {
-                console.log(error)
-            },
-            
-            function complete() {
-                const uploadCompleteText = document.getElementById('upload-complete-text')
-                uploadCompleteText.innerHTML = "Upload Complete"
-                callSetProfilePicture()
-            }
-        )
-    }
-
-    const setProfilePicture = (uid) => {
-        props.firebase.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
-        .then(url => {
-            props.firebase.auth.currentUser.updateProfile({ photoURL : url })
-            document.getElementById('profile-picture-modal').src = url
-            document.getElementById('profile-picture-bio').src = url
-        })
-    }
+    useEffect(() => {
+        props.firebase.userBio().on('value', snapshot => {
+            setState( prevState => {
+               return { ...prevState, bio : snapshot.val() }
+            })
+        }) 
+    }, [state.bio, props.firebase])
 
     const clearModal = () => {
-        setState({
-            selectedFile: null,
-            error: null
-        })
-
+       
         // for profile picture
         document.getElementById('uploadInput').value = ''
         document.getElementById('progressbar').value = 0
@@ -83,7 +44,7 @@ const AccountPage = (props) => {
                 error: "Please select a photo"
             })
         } else {
-            uploadProfilePicture(props.firebase.auth.currentUser.uid, state.selectedFile)
+            props.firebase.uploadProfilePicture(props.firebase.auth.currentUser.uid, state.selectedFile)
         }
     }
 
@@ -176,7 +137,7 @@ const AccountPage = (props) => {
                                             <span><strong>Date Joined:</strong> March 2020</span>
                                             <hr />
                                             <span><strong>Bio:</strong></span>
-                                            <p id="user-bio" className="user-bio"> </p>
+                                            <p id="user-bio" className="user-bio" > { state.bio } </p>
                                         </div>
                                     </div>
                                 </div>

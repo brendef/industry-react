@@ -11,7 +11,8 @@ class AccountPage extends Component {
         this.state = {
             authUser: this.props.authUser,
             selectedFile: null,
-            error: null
+            error: null,
+            bio: "loading"
         }
 
     }
@@ -49,7 +50,9 @@ class AccountPage extends Component {
     }
 
     componentDidMount() {
-        this.props.firebase.setBio()
+        this.setState(({
+            bio: this.props.firebase.getBio()
+        }))
     }
 
     render() {
@@ -147,7 +150,7 @@ class AccountPage extends Component {
                                             <span><strong>Date Joined:</strong> March 2020</span>
                                             <hr />
                                             <span><strong>Bio:</strong></span>
-                                            <p id="user-bio" className="user-bio"> </p>
+                                            <p id="user-bio" className="user-bio"> {this.state.bio} </p>
                                         </div>
                                     </div>
                                 </div>

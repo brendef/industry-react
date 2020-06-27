@@ -39,8 +39,8 @@ class AccountPage extends Component {
     }
 
     setBio = () => {
-        this.props.firebase.db.ref(`users/${this.props.firebase.auth.currentUser.uid}/bio`).on('value', snapshot => {
-            document.getElementById('user-bio').innerHTML = snapshot.val()
+        this.props.firebase.userBio().on('value', snapshot => {
+            this.setState({bio : snapshot.val()})
         }) 
     }
 
@@ -180,7 +180,7 @@ class AccountPage extends Component {
                                             <span><strong>Date Joined:</strong> March 2020</span>
                                             <hr />
                                             <span><strong>Bio:</strong></span>
-                                            <p id="user-bio" className="user-bio"> </p>
+                                            <p id="user-bio" className="user-bio"> {this.state.bio} </p>
                                         </div>
                                     </div>
                                 </div>
