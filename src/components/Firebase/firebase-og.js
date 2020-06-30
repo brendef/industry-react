@@ -2,7 +2,6 @@ import app from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/database'
 import 'firebase/storage'
-import 'firebase/firestore'
 
 const firebaseConfig = {
     apiKey: process.env.REACT_APP_API_KEY,
@@ -19,6 +18,7 @@ class Firebase {
         app.initializeApp(firebaseConfig)
 
         this.auth = app.auth()
+        // this.db = app.database()
         this.db = app.firestore()
         this.storage = app.storage()      
 
@@ -36,7 +36,6 @@ class Firebase {
         this.storage.ref(`Default_Profile_Pictures/${ Math.floor(Math.random() * (12 - 1 + 1)) + 1 }.png`).getDownloadURL()
         .then(url => {
             this.auth.currentUser.updateProfile({ photoURL : url })
-            this.db.collection('users').doc(this.auth.currentUser.uid).update({photoURL: url})
         })
     }  
 
@@ -48,30 +47,29 @@ class Firebase {
 
     // *** User API *** //
 
-    user = uid => this.db.collection(`users`).doc(uid)
+    user = uid => this.db.ref(`users/${uid}`)
 
-    user = () => this.db.collection(`users`).doc(this.auth.currentUser.uid)
+    users = () => this.db.ref('users')
 
-    currentUser = () => this.db.collection(`users`).doc(this.auth.currentUser.uid)
+    userBio = () => this.db.ref(`users/${this.auth.currentUser.uid}`).child('bio')
 
-    users = () => this.db.collection(`users`)
-
-    updatebio = (bio) => this.db.collection(`users`).doc(this.auth.currentUser.uid).update({ bio })
+    date_joined = () => this.db.ref(`users/${this.auth.currentUser.uid}`).child('date_joined')
 
     setProfilePicture = (uid) => {
         this.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
         .then(url => {
             this.auth.currentUser.updateProfile({ photoURL : url })
-            this.db.collection('users').doc(this.auth.currentUser.uid).update({photoURL: url})
+            document.getElementById('profile-picture-modal').src = url
+            document.getElementById('profile-picture-bio').src = url
         })
     }
 
     // *** Storage API *** //
 
-    uploadProfilePicture = (picture) => {
-        const storageRef = this.storage.ref(`Profile_Pictures/${this.auth.currentUser.uid}`)
+    uploadProfilePicture = (uid, picture) => {
+        const storageRef = this.storage.ref(`Profile_Pictures/${uid}`)
         const task = storageRef.put(picture)
-        const callSetProfilePicture = () => this.setProfilePicture(this.auth.currentUser.uid)
+        const callSetProfilePicture = () => this.setProfilePicture(uid)
 
         task.on('state_changed',
             function process(snapshot) {
