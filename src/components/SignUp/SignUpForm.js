@@ -2,6 +2,9 @@ import React, { Component } from 'react'
 import { withRouter } from 'react-router-dom'
 import { withFirebase } from '../Firebase'
 import { compose } from 'recompose'
+
+import getMonthName from '../appFunctions'
+
 import * as ROUTES from '../../constants/routes'
 
 const INITIAL_STATE = {
@@ -25,7 +28,7 @@ class SignUpFormBase extends Component {
 
     onSubmit = event => {
         const { fullname, email, passwordOne } = this.state;
-     
+        const date = new Date()
         this.props.firebase
           .createUserWithEmailAndPassword(email, passwordOne)
           .then(authUser => {
@@ -34,7 +37,11 @@ class SignUpFormBase extends Component {
               .set({
                 email,
                 fullname,
-                bio: `Hi there! My name is ${fullname} and I am using the best app in the world!`
+                bio: `Hi there! My name is ${fullname} and I am using the best app in the world!`,
+                date_joined: {
+                  month: getMonthName(date.getMonth()),
+                  year: date.getFullYear()
+                }
               })
           })
           .then(() => {

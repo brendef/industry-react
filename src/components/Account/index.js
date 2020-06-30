@@ -1,143 +1,81 @@
-import React, { useState, useEffect } from 'react'
+import React, { Component } from 'react'
 import PasswordChangeForm from '../PasswordChange'
 import { withAuthorisation, AuthUserContext } from '../Session'
+import BioModal from "./BioModal";
+import ProfilePictureModal from './ProfilePictureModal';
 
 import './AccountPage.css'
 
-const AccountPage = (props) => {
+class AccountPage extends Component {
+    constructor(props) {
+        super(props)
 
-    const [state, setState] = useState({ 
+        this.state = {
             bio: null,
-            selectedFile: null,
-            error: null
-     })
+            photoURL: null,
+            dateJoined: {
+                month: null ,
+                year: null
+            }
+        }
+        
+    } 
 
-    useEffect(() => {
-        props.firebase.userBio().on('value', snapshot => {
-            setState( prevState => {
-               return { ...prevState, bio : snapshot.val() }
-            })
-        }) 
-    }, [state.bio, props.firebase])
-
-    const clearModal = () => {
-       
-        // for profile picture
-        document.getElementById('uploadInput').value = ''
-        document.getElementById('progressbar').value = 0
-        document.getElementById('upload-complete-text').innerHTML = ''
-
-        // for bio
-        document.getElementById('bio-text-area').value = ''
-
-    }
-
-    const selectFileHandler = event => {
-        setState({
-            selectedFile: event.target.files[0]
+    componentDidMount() {
+        this.props.firebase.currentUser().onSnapshot(doc => {
+            this.setState(prevState => { return { ...prevState, bio: doc.data().bio } })
+        })
+        this.props.firebase.currentUser().onSnapshot(doc => {
+            this.setState(prevState => { return { ...prevState, photoURL: doc.data().photoURL } })
+        })
+        this.props.firebase.currentUser().onSnapshot(doc => {
+            this.setState(prevState => { 
+                return { 
+                    ...prevState, 
+                    dateJoined: {
+                        month: doc.data().date_joined.month,
+                        year: doc.data().date_joined.year
+                    }
+                }})
         })
     }
 
-    const uploadFileHandler = () => {
-        if (state.selectedFile === null) {
-            setState({
-                error: "Please select a photo"
-            })
-        } else {
-            props.firebase.uploadProfilePicture(props.firebase.auth.currentUser.uid, state.selectedFile)
-        }
-    }
-
+    render() {
         return (
             <AuthUserContext.Consumer>
                 {authUser =>
                     <div className="accountspage">
+
                         {/* Profile Picture Upload Modal */}
-                        <div id="profilePictureModal" className="modal fade container-fluid" aria-hidden="true">
-                            <div className="modal-dialog modal-dialog-centered" role="document">
-                                <div className="modal-content">
-                                    <div className="modal-header">
-                                        <h5>Upload Profile Picture</h5>
-                                        <button onClick={clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-
-                                    <div className="modal-body d-flex flex-column">
-                                        <div className="row align-items-center">
-                                            <div className="col-md-4 mt-3 mb-3">
-                                                <img id="profile-picture-modal" className="profile-picture" src={authUser.photoURL} width="150" height="150" alt="" />
-                                            </div>
-                                            <div className="col-md-8 mt-3 mb-3">
-                                                {
-                                                    state.error ?
-                                                        <input id="uploadInput" className="text-danger" type="file" onChange={selectFileHandler} />
-                                                        :
-                                                        <input id="uploadInput" className="" type="file" onChange={selectFileHandler} />
-                                                }
-                                            </div>
-                                        </div>
-                                        {state.error && <p className="text-danger">{state.error}</p>}
-
-                                        <progress id="progressbar" style={{ width: "100%" }} value="0" max-value="100"></progress>
-
-                                        <button className="btn btn-outline-dark mt-3 mb-3" onClick={uploadFileHandler}> Upload </button>
-
-                                        <p id="upload-complete-text" className="text-successful"></p>
-
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
+                       <ProfilePictureModal firebase={this.props.firebase} />
                         {/* Profile Picture Upload Modal */}
 
                         {/* Bio Modal */}
-                        <div id="BioModal" className="modal fade container-fluid" aria-hidden="true">
-                            <div className="modal-dialog modal-dialog-centered" role="document">
-                                <div className="modal-content">
-                                    <div className="modal-header">
-                                        <h5>Edit Bio</h5>
-                                        <button onClick={clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-
-                                    <textarea id="bio-text-area">
-
-                                    </textarea>
-
-                                    <div className="modal-footer">
-                                        <button onClick={clearModal} type="button" className="btn btn-outline-danger" data-dismiss="modal">Close</button>
-                                        <button type="button" className="btn btn-outline-dark" onClick={uploadFileHandler}>Update</button>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
+                        <BioModal firebase={this.props.firebase}/>
                         {/* Bio Modal */}
-
-
-
 
                         <div className="container">
 
                             {/* Account Top part / user infromation */}
                             <div>
-                                <div className="container mt-2 mb-2">
+                                <div className="container mt-2 mb-3">
                                     <div className="row">
                                         <div className="">
-                                            <img id="profile-picture-bio" className="img-thumbnail md-margin-bottom-10" src={authUser.photoURL} width="200" height="200" alt="" />
+                                            <img id="profile-picture-bio" className="img-thumbnail md-margin-bottom-10" src={this.state.photoURL} width="200" height="200" alt="" />
                                         </div>
                                         <div className="col-md-8">
                                             <h2>{authUser.displayName}</h2>
                                             <div>
                                                 <strong>City:</strong> Cape Town
                                             </div>
-                                            <span><strong>Date Joined:</strong> March 2020</span>
+                                            <span>
+                                                <strong>Date Joined:</strong>
+                                                <span> { this.state.dateJoined.month } </span>
+                                                <span> { this.state.dateJoined.year } </span>
+                                            </span>
                                             <hr />
                                             <span><strong>Bio:</strong></span>
-                                            <p id="user-bio" className="user-bio" > { state.bio } </p>
+                                            <p id="user-bio" className="user-bio" > { this.state.bio } </p>
                                         </div>
                                     </div>
                                 </div>
@@ -148,48 +86,68 @@ const AccountPage = (props) => {
                             {/* Rest of page / setting part / bottom part */}
 
 
-                            <div className="accordion" id="accordionExample">
+                            <div className="accordion" id="settingsList">
+
                                 <div className="card">
-                                    <div className="card-header" id="headingOne">
+                                    <div className="card-header" id="ActiveOrders">
                                         <h2 className="mb-0">
-                                            <button className="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                            <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseActiveOrders" aria-expanded="false" aria-controls="collapseActiveOrders">
                                                 Active Orders / Services 
                                             </button>
                                         </h2>
                                     </div>
 
-                                    <div id="collapseOne" className="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                                    <div id="collapseActiveOrders" className="collapse" aria-labelledby="ActiveOrders" data-parent="#settingsList">
                                         <div className="card-body">
                                             All work with services will be shown here
                                         </div>
                                     </div>
                                 </div>
                                 <div className="card">
-                                    <div className="card-header" id="headingTwo">
+                                    <div className="card-header" id="reviews">
                                         <h2 className="mb-0">
-                                            <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                            <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseReviews" aria-expanded="false" aria-controls="collapseReviews">
+                                                Reviews / Ratings 
+                                            </button>
+                                        </h2>
+                                    </div>
+
+                                    <div id="collapseReviews" className="collapse" aria-labelledby="reviews" data-parent="#settingsList">
+                                        <div className="card-body">
+                                            All your reviews and ratings will be shown here
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="card">
+                                    <div className="card-header" id="EditProfile">
+                                        <h2 className="mb-0">
+                                            <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseEditProfile" aria-expanded="false" aria-controls="collapseEditProfile">
                                                 Edit Profile
                                              </button>
                                         </h2>
                                     </div>
-                                    <div id="collapseTwo" className="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+                                    <div id="collapseEditProfile" className="collapse" aria-labelledby="EditProfile" data-parent="#settingsList">
                                         <div className="card-body">
-                                            <div className="d-flex flex-column">
-                                                <p className="editProfileButtons p-2" data-toggle="modal" data-target="#profilePictureModal">Change Profile Picture</p>
-                                                <p className="editProfileButtons p-2" data-toggle="modal" data-target="#BioModal">Edit Bio</p>
+                                            <div className="profileEditModals">
+                                                <div>
+                                                    <button className="editProfileButtons p-2" data-toggle="modal" data-target="#profilePictureModal">Change Profile Picture</button>
+                                                </div>
+                                                <div>
+                                                    <button className="editProfileButtons p-2" data-toggle="modal" data-target="#BioModal">Edit Bio</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="card">
-                                    <div className="card-header" id="headingThree">
+                                    <div className="card-header" id="resetPassword">
                                         <h2 className="mb-0">
-                                            <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                            <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseResetPassword" aria-expanded="false" aria-controls="collapseResetPassword">
                                                 Reset Password
                                             </button>
                                         </h2>
                                     </div>
-                                    <div id="collapseThree" className="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+                                    <div id="collapseResetPassword" className="collapse" aria-labelledby="resetPassword" data-parent="#settingsList">
                                         <div className="card-body">
                                             <PasswordChangeForm />
                                         </div>
@@ -202,195 +160,85 @@ const AccountPage = (props) => {
             </AuthUserContext.Consumer>
         )
     }
+}
 
-
-const condition = authUser => !!authUser;
+const condition = authUser => !!authUser
 
 export default withAuthorisation(condition)(AccountPage)
 
-// import React, { Component } from 'react'
+
+// import React, { useState, useEffect } from 'react'
 // import PasswordChangeForm from '../PasswordChange'
 // import { withAuthorisation, AuthUserContext } from '../Session'
+// import BioModal from "./BioModal";
+// import ProfilePictureModal from './ProfilePictureModal';
 
 // import './AccountPage.css'
 
-// class AccountPage extends Component {
-//     constructor(props) {
-//         super(props)
-
-//         this.state = {
-//             selectedFile: null,
-//             error: null
-//         }
-//     }
-
-//     uploadProfilePicture = (uid, picture) => {
-//         const storageRef = this.props.firebase.storage.ref(`Profile_Pictures/${uid}`)
-//         const task = storageRef.put(picture)
-//         const callSetProfilePicture = () => this.setProfilePicture(uid)
-
-//         task.on('state_changed',
-//             function process(snapshot) {
-//                 let percentage = ( snapshot.bytesTransferred / snapshot.totalBytes ) * 100
-//                 const progressbar = document.getElementById('progressbar')
-//                 progressbar.value = percentage
-//             },
-    
-//             function error(error) {
-//                 console.log(error)
-//             },
-            
-//             function complete() {
-//                 const uploadCompleteText = document.getElementById('upload-complete-text')
-//                 uploadCompleteText.innerHTML = "Upload Complete"
-//                 callSetProfilePicture()
+// const AccountPage = (props) => {
+//     const [state, setState] = useState({
+//             bio: null,
+//             photoURL: null,
+//             dateJoined: {
+//                 month: null ,
+//                 year: null
 //             }
-//         )
-//     }
+//      })
 
-//     setBio = () => {
-//         this.props.firebase.userBio().on('value', snapshot => {
-//             this.setState({bio : snapshot.val()})
-//         }) 
-//     }
-
-//     setProfilePicture = (uid) => {
-//         this.props.firebase.storage.ref(`Profile_Pictures/${uid}`).getDownloadURL()
-//         .then(url => {
-//             this.props.firebase.auth.currentUser.updateProfile({ photoURL : url })
-//             document.getElementById('profile-picture-modal').src = url
-//             document.getElementById('profile-picture-bio').src = url
+//     useEffect(() => {
+//         props.firebase.user(props.firebase.auth.uid).onSnapshot(doc => {
+//             setState(prevState => { return { ...prevState, bio: doc.data().bio } })
 //         })
-//     }
-
-//     clearModal = () => {
-//         this.setState({
-//             selectedFile: null,
-//             error: null
+//         props.firebase.user(props.firebase.auth.uid).onSnapshot(doc => {
+//             setState(prevState => { return { ...prevState, photoURL: doc.data().photoURL } })
 //         })
-
-//         // for profile picture
-//         document.getElementById('uploadInput').value = ''
-//         document.getElementById('progressbar').value = 0
-//         document.getElementById('upload-complete-text').innerHTML = ''
-
-//         // for bio
-//         document.getElementById('bio-text-area').value = ''
-
-//     }
-
-//     selectFileHandler = event => {
-//         this.setState({
-//             selectedFile: event.target.files[0]
+//         props.firebase.user(props.firebase.auth.uid).onSnapshot(doc => {
+//             setState(prevState => { 
+//                 return { 
+//                     ...prevState, 
+//                     dateJoined: {
+//                         month: doc.data().date_joined.month,
+//                         year: doc.data().date_joined.year
+//                     }
+//                 }})
 //         })
-//     }
+//     }, [state.bio, state.photoURL, state.dateJoined, props.firebase])
 
-//     uploadFileHandler = () => {
-//         if (this.state.selectedFile === null) {
-//             this.setState({
-//                 error: "Please select a photo"
-//             })
-//         } else {
-//             this.uploadProfilePicture(this.props.firebase.auth.currentUser.uid, this.state.selectedFile)
-//         }
-//     }
+    
 
-//     componentDidMount() {
-//         this.setBio()
-//     }
-
-//     render() {
 //         return (
 //             <AuthUserContext.Consumer>
 //                 {authUser =>
 //                     <div className="accountspage">
-
 //                         {/* Profile Picture Upload Modal */}
-//                         <div id="profilePictureModal" className="modal fade container-fluid" aria-hidden="true">
-//                             <div className="modal-dialog modal-dialog-centered" role="document">
-//                                 <div className="modal-content">
-//                                     <div className="modal-header">
-//                                         <h5>Upload Profile Picture</h5>
-//                                         <button onClick={this.clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
-//                                             <span aria-hidden="true">&times;</span>
-//                                         </button>
-//                                     </div>
-
-//                                     <div className="modal-body d-flex flex-column">
-//                                         <div className="row align-items-center">
-//                                             <div className="col-md-4 mt-3 mb-3">
-//                                                 <img id="profile-picture-modal" className="profile-picture" src={authUser.photoURL} width="150" height="150" alt="" />
-//                                             </div>
-//                                             <div className="col-md-8 mt-3 mb-3">
-//                                                 {
-//                                                     this.state.error ?
-//                                                         <input id="uploadInput" className="text-danger" type="file" onChange={this.selectFileHandler} />
-//                                                         :
-//                                                         <input id="uploadInput" className="" type="file" onChange={this.selectFileHandler} />
-//                                                 }
-//                                             </div>
-//                                         </div>
-//                                         {this.state.error && <p className="text-danger">{this.state.error}</p>}
-
-//                                         <progress id="progressbar" style={{ width: "100%" }} value="0" max-value="100"></progress>
-
-//                                         <button className="btn btn-outline-dark mt-3 mb-3" onClick={this.uploadFileHandler}> Upload </button>
-
-//                                         <p id="upload-complete-text" className="text-successful"></p>
-
-//                                     </div>
-
-//                                 </div>
-//                             </div>
-//                         </div>
+//                        <ProfilePictureModal firebase={props.firebase} />
 //                         {/* Profile Picture Upload Modal */}
 
 //                         {/* Bio Modal */}
-//                         <div id="BioModal" className="modal fade container-fluid" aria-hidden="true">
-//                             <div className="modal-dialog modal-dialog-centered" role="document">
-//                                 <div className="modal-content">
-//                                     <div className="modal-header">
-//                                         <h5>Edit Bio</h5>
-//                                         <button onClick={this.clearModal} type="button" className="close" data-dismiss="modal" aria-label="Close">
-//                                             <span aria-hidden="true">&times;</span>
-//                                         </button>
-//                                     </div>
-
-//                                     <textarea id="bio-text-area">
-
-//                                     </textarea>
-
-//                                     <div className="modal-footer">
-//                                         <button onClick={this.clearModal} type="button" className="btn btn-outline-danger" data-dismiss="modal">Close</button>
-//                                         <button type="button" className="btn btn-outline-dark" onClick={this.uploadFileHandler}>Update</button>
-//                                     </div>
-
-//                                 </div>
-//                             </div>
-//                         </div>
+//                         <BioModal firebase={props.firebase}/>
 //                         {/* Bio Modal */}
-
-
-
 
 //                         <div className="container">
-
 //                             {/* Account Top part / user infromation */}
 //                             <div>
-//                                 <div className="container mt-2 mb-2">
+//                                 <div className="container mt-2 mb-3">
 //                                     <div className="row">
 //                                         <div className="">
-//                                             <img id="profile-picture-bio" className="img-thumbnail md-margin-bottom-10" src={authUser.photoURL} width="200" height="200" alt="" />
+//                                             <img id="profile-picture-bio" className="img-thumbnail md-margin-bottom-10" src={state.photoURL} width="200" height="200" alt="" />
 //                                         </div>
 //                                         <div className="col-md-8">
 //                                             <h2>{authUser.displayName}</h2>
 //                                             <div>
 //                                                 <strong>City:</strong> Cape Town
 //                                             </div>
-//                                             <span><strong>Date Joined:</strong> March 2020</span>
+//                                             <span>
+//                                                 <strong>Date Joined:</strong>
+//                                                 <span> { state.dateJoined.month } </span>
+//                                                 <span> { state.dateJoined.year } </span>
+//                                             </span>
 //                                             <hr />
 //                                             <span><strong>Bio:</strong></span>
-//                                             <p id="user-bio" className="user-bio"> {this.state.bio} </p>
+//                                             <p id="user-bio" className="user-bio" > { state.bio } </p>
 //                                         </div>
 //                                     </div>
 //                                 </div>
@@ -401,48 +249,68 @@ export default withAuthorisation(condition)(AccountPage)
 //                             {/* Rest of page / setting part / bottom part */}
 
 
-//                             <div className="accordion" id="accordionExample">
+//                             <div className="accordion" id="settingsList">
+
 //                                 <div className="card">
-//                                     <div className="card-header" id="headingOne">
+//                                     <div className="card-header" id="ActiveOrders">
 //                                         <h2 className="mb-0">
-//                                             <button className="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+//                                             <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseActiveOrders" aria-expanded="false" aria-controls="collapseActiveOrders">
 //                                                 Active Orders / Services 
 //                                             </button>
 //                                         </h2>
 //                                     </div>
 
-//                                     <div id="collapseOne" className="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+//                                     <div id="collapseActiveOrders" className="collapse" aria-labelledby="ActiveOrders" data-parent="#settingsList">
 //                                         <div className="card-body">
 //                                             All work with services will be shown here
 //                                         </div>
 //                                     </div>
 //                                 </div>
 //                                 <div className="card">
-//                                     <div className="card-header" id="headingTwo">
+//                                     <div className="card-header" id="reviews">
 //                                         <h2 className="mb-0">
-//                                             <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+//                                             <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseReviews" aria-expanded="false" aria-controls="collapseReviews">
+//                                                 Reviews / Ratings 
+//                                             </button>
+//                                         </h2>
+//                                     </div>
+
+//                                     <div id="collapseReviews" className="collapse" aria-labelledby="reviews" data-parent="#settingsList">
+//                                         <div className="card-body">
+//                                             All your reviews and ratings will be shown here
+//                                         </div>
+//                                     </div>
+//                                 </div>
+//                                 <div className="card">
+//                                     <div className="card-header" id="EditProfile">
+//                                         <h2 className="mb-0">
+//                                             <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseEditProfile" aria-expanded="false" aria-controls="collapseEditProfile">
 //                                                 Edit Profile
 //                                              </button>
 //                                         </h2>
 //                                     </div>
-//                                     <div id="collapseTwo" className="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+//                                     <div id="collapseEditProfile" className="collapse" aria-labelledby="EditProfile" data-parent="#settingsList">
 //                                         <div className="card-body">
-//                                             <div className="d-flex flex-column">
-//                                                 <p className="editProfileButtons p-2" data-toggle="modal" data-target="#profilePictureModal">Change Profile Picture</p>
-//                                                 <p className="editProfileButtons p-2" data-toggle="modal" data-target="#BioModal">Edit Bio</p>
+//                                             <div className="profileEditModals">
+//                                                 <div>
+//                                                     <button className="editProfileButtons p-2" data-toggle="modal" data-target="#profilePictureModal">Change Profile Picture</button>
+//                                                 </div>
+//                                                 <div>
+//                                                     <button className="editProfileButtons p-2" data-toggle="modal" data-target="#BioModal">Edit Bio</button>
+//                                                 </div>
 //                                             </div>
 //                                         </div>
 //                                     </div>
 //                                 </div>
 //                                 <div className="card">
-//                                     <div className="card-header" id="headingThree">
+//                                     <div className="card-header" id="resetPassword">
 //                                         <h2 className="mb-0">
-//                                             <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+//                                             <button className="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseResetPassword" aria-expanded="false" aria-controls="collapseResetPassword">
 //                                                 Reset Password
 //                                             </button>
 //                                         </h2>
 //                                     </div>
-//                                     <div id="collapseThree" className="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+//                                     <div id="collapseResetPassword" className="collapse" aria-labelledby="resetPassword" data-parent="#settingsList">
 //                                         <div className="card-body">
 //                                             <PasswordChangeForm />
 //                                         </div>
@@ -455,8 +323,7 @@ export default withAuthorisation(condition)(AccountPage)
 //             </AuthUserContext.Consumer>
 //         )
 //     }
-// }
 
-// const condition = authUser => !!authUser;
+// const condition = authUser => !!authUser
 
 // export default withAuthorisation(condition)(AccountPage)

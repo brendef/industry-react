@@ -16,7 +16,7 @@ class SignInFormBase extends Component {
     constructor(props) {
       super(props);
    
-      this.state = { ...INITIAL_STATE };
+      this.state = { ...INITIAL_STATE }
     }
 
     onChange = event => {
