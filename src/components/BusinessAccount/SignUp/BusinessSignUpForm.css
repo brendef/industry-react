@@ -1,0 +1,7 @@
+.bsu-left {
+    background-color: lightgreen;
+}
+
+.signuppage {
+    height: calc(100vh - 56px);
+}

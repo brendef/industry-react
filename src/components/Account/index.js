@@ -40,6 +40,10 @@ class AccountPage extends Component {
         })
     }
 
+    componentWillUnmount() {
+        this.setState({ })
+    }
+
     render() {
         return (
             <AuthUserContext.Consumer>
