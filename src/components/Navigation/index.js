@@ -31,10 +31,10 @@ const NavigationNonAuth = () => (
     <div id="navbarToggler" className="collapse navbar-collapse">
       <ul className="navbar-nav ml-auto mt-2 mt-lg-0">
         <li className="nav-item">
-          <Link className="nav-link pl-5 pr-5 active" to={ROUTES.SIGN_IN}>Sign In</Link>
+          <Link className="nav-link pl-5 pr-5 active" to={ROUTES.LANDING}>Landing</Link>
         </li>
         <li className="nav-item">
-          <Link className="nav-link pl-5 pr-5 active" to={ROUTES.BUSINESS_SIGN_UP}>Business Account</Link>
+          <Link className="nav-link pl-5 pr-5 active" to={ROUTES.SIGN_IN}>Sign In</Link>
         </li>
       </ul>
     </div>

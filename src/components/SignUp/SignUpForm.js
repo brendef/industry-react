@@ -41,8 +41,7 @@ class SignUpFormBase extends Component {
                 date_joined: {
                   month: getMonthName(date.getMonth()),
                   year: date.getFullYear()
-                },
-                is_business_account: false
+                }
               })
           })
           .then(() => {
